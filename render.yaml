@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: turf-disease-forecast
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # MET Norway API用のUser-Agent（必要に応じて設定）
+      - key: MET_NORWAY_USER_AGENT
+        value: TurfDiseaseForecastApp/1.0 (your-email@example.com)
