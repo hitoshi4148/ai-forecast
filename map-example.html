@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病害リスク予報 - 地図表示例</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background-color: #F3F4F6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1E40AF;
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #6B7280;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #1E40AF;
+        }
+
+        .map-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .marker-container {
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+
+        .marker-container:hover {
+            transform: scale(1.1);
+        }
+
+        .marker {
+            width: 40px;
+            height: 40px;
+            background-color: #FFFFFF;
+            border: 3px solid #1E40AF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .facility-name {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: bold;
+            color: #1E40AF;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .risk-badges {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .risk-badge {
+            width: 50px;
+            height: 20px;
+            color: #FFFFFF;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            z-index: 20;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #1E40AF;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .popup-overlay.active {
+            display: block;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #FFFFFF;
+            border: 2px solid #1E40AF;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 90vw;
+            display: none;
+        }
+
+        .popup.active {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .popup-title {
+            margin: 0;
+            color: #1E40AF;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-close:hover {
+            color: #000;
+        }
+
+        .risk-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #F9FAFB;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .risk-item-label {
+            flex: 1;
+        }
+
+        .risk-item-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #1F2937;
+        }
+
+        .risk-item-short {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        .risk-item-value {
+            width: 80px;
+            height: 40px;
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .popup-footer {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #6B7280;
+            text-align: center;
+        }
+
+        /* リスク色 */
+        .risk-low { background-color: #3B82F6; }
+        .risk-medium-low { background-color: #10B981; }
+        .risk-medium { background-color: #FBBF24; }
+        .risk-medium-high { background-color: #F97316; }
+        .risk-high { background-color: #EF4444; }
+        .risk-unknown { background-color: #808080; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>芝生病害リスク予報</h1>
+        <p class="subtitle">予測時刻: 明日朝6:00時点のリスク予測</p>
+        
+        <div class="map-container" id="mapContainer">
+            <!-- SVG地図 -->
+            <svg class="map-svg" viewBox="0 0 900 250" preserveAspectRatio="xMidYMid meet">
+                <!-- 日本列島の簡略輪郭 -->
+                <path d="M 100 50 L 150 60 L 200 80 L 250 100 L 300 120 L 350 110 L 400 100 L 450 90 L 500 85 L 550 80 L 600 75 L 650 70 L 700 65 L 750 60 L 800 55 L 850 50 L 800 100 L 750 120 L 700 130 L 650 140 L 600 145 L 550 150 L 500 155 L 450 160 L 400 165 L 350 170 L 300 175 L 250 180 L 200 185 L 150 190 L 100 200 Z"
+                      fill="#F0F9FF" stroke="#1E40AF" stroke-width="2"/>
+            </svg>
+
+            <!-- 施設マーカー（JavaScriptで動的に追加） -->
+        </div>
+
+        <!-- 凡例 -->
+        <div class="legend">
+            <div class="legend-title">リスク凡例</div>
+            <div class="legend-item">
+                <div class="legend-color risk-low"></div>
+                <span>0-20% (低リスク)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color risk-medium-low"></div>
+                <span>20-40% (やや低)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color risk-medium"></div>
+                <span>40-60% (中リスク)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color risk-medium-high"></div>
+                <span>60-80% (やや高)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color risk-high"></div>
+                <span>80-100% (高リスク)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ポップアップ -->
+    <div class="popup-overlay" id="popupOverlay"></div>
+    <div class="popup" id="popup">
+        <div class="popup-header">
+            <h3 class="popup-title" id="popupTitle">施設名</h3>
+            <button class="popup-close" id="popupClose">×</button>
+        </div>
+        <div id="popupContent"></div>
+        <div class="popup-footer">予測時刻: 明日朝6:00時点</div>
+    </div>
+
+    <script>
+        // サンプルデータ
+        const facilities = [
+            {
+                id: 1,
+                name: '蔵王カントリークラブ',
+                x: 350,
+                y: 120,
+                risks: {
+                    dollarSpot: 45,
+                    brownPatch: 30,
+                    pythium: 15,
+                    anthracnose: 60,
+                    largePatch: 25
+                }
+            },
+            {
+                id: 2,
+                name: '香取カントリークラブ',
+                x: 400,
+                y: 140,
+                risks: {
+                    dollarSpot: 35,
+                    brownPatch: 55,
+                    pythium: 20,
+                    anthracnose: 40,
+                    largePatch: 15
+                }
+            },
+            {
+                id: 3,
+                name: '東海カントリークラブ',
+                x: 450,
+                y: 150,
+                risks: {
+                    dollarSpot: 70,
+                    brownPatch: 25,
+                    pythium: 85,
+                    anthracnose: 50,
+                    largePatch: 10
+                }
+            },
+            {
+                id: 4,
+                name: '阿蘇大津ゴルフクラブ',
+                x: 500,
+                y: 200,
+                risks: {
+                    dollarSpot: 20,
+                    brownPatch: 40,
+                    pythium: 30,
+                    anthracnose: 35,
+                    largePatch: 50
+                }
+            },
+            {
+                id: 5,
+                name: 'ユーザー指定施設',
+                x: 300,
+                y: 150,
+                risks: {
+                    dollarSpot: 90,
+                    brownPatch: 75,
+                    pythium: 65,
+                    anthracnose: 80,
+                    largePatch: 45
+                }
+            }
+        ];
+
+        // リスク値に応じた色クラスを返す
+        function getRiskColorClass(risk) {
+            if (risk === null || risk === undefined || isNaN(risk)) {
+                return 'risk-unknown';
+            }
+            if (risk < 20) return 'risk-low';
+            if (risk < 40) return 'risk-medium-low';
+            if (risk < 60) return 'risk-medium';
+            if (risk < 80) return 'risk-medium-high';
+            return 'risk-high';
+        }
+
+        // リスク値の表示テキストを返す
+        function getRiskText(risk) {
+            if (risk === null || risk === undefined || isNaN(risk)) {
+                return '?';
+            }
+            return Math.round(risk) + '%';
+        }
+
+        // マーカーを作成
+        function createMarker(facility) {
+            const container = document.createElement('div');
+            container.className = 'marker-container';
+            container.style.left = `${(facility.x / 900) * 100}%`;
+            container.style.top = `${(facility.y / 250) * 100}%`;
+            container.style.transform = 'translate(-50%, -50%)';
+
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.textContent = '📍';
+
+            const name = document.createElement('div');
+            name.className = 'facility-name';
+            name.textContent = facility.name;
+
+            const riskBadges = document.createElement('div');
+            riskBadges.className = 'risk-badges';
+
+            const riskLabels = [
+                { key: 'dollarSpot', label: 'DS' },
+                { key: 'brownPatch', label: 'BP' },
+                { key: 'pythium', label: 'Py' },
+                { key: 'anthracnose', label: 'An' },
+                { key: 'largePatch', label: 'LP' }
+            ];
+
+            riskLabels.forEach(({ key, label }) => {
+                const badge = document.createElement('div');
+                badge.className = `risk-badge ${getRiskColorClass(facility.risks[key])}`;
+                badge.textContent = getRiskText(facility.risks[key]);
+                badge.title = `${label}: ${getRiskText(facility.risks[key])}`;
+                riskBadges.appendChild(badge);
+            });
+
+            container.appendChild(marker);
+            container.appendChild(name);
+            container.appendChild(riskBadges);
+
+            // クリックイベント
+            container.addEventListener('click', () => {
+                showPopup(facility);
+            });
+
+            return container;
+        }
+
+        // ポップアップを表示
+        function showPopup(facility) {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('popupOverlay');
+            const title = document.getElementById('popupTitle');
+            const content = document.getElementById('popupContent');
+
+            title.textContent = facility.name;
+
+            const riskItems = [
+                { key: 'dollarSpot', label: 'Dollar Spot', fullName: 'Dollar Spot' },
+                { key: 'brownPatch', label: 'Brown Patch', fullName: 'Brown Patch' },
+                { key: 'pythium', label: 'Pythium', fullName: 'Pythium' },
+                { key: 'anthracnose', label: 'Anthracnose', fullName: 'Anthracnose（炭疽病）' },
+                { key: 'largePatch', label: 'Large Patch', fullName: 'Large Patch' }
+            ];
+
+            content.innerHTML = riskItems.map(({ key, label, fullName }) => {
+                const risk = facility.risks[key];
+                const riskValue = risk !== null && risk !== undefined && !isNaN(risk) ? Math.round(risk) : null;
+                const colorClass = getRiskColorClass(risk);
+
+                return `
+                    <div class="risk-item">
+                        <div class="risk-item-label">
+                            <div class="risk-item-name">${fullName}</div>
+                            <div class="risk-item-short">${label}</div>
+                        </div>
+                        <div class="risk-item-value ${colorClass}">
+                            ${riskValue !== null ? riskValue + '%' : '?'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            popup.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        // ポップアップを閉じる
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('popupOverlay');
+            popup.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        // イベントリスナー設定
+        document.getElementById('popupClose').addEventListener('click', closePopup);
+        document.getElementById('popupOverlay').addEventListener('click', closePopup);
+
+        // マーカーを地図に追加
+        const mapContainer = document.getElementById('mapContainer');
+        facilities.forEach(facility => {
+            const marker = createMarker(facility);
+            mapContainer.appendChild(marker);
+        });
+    </script>
+</body>
+</html>
