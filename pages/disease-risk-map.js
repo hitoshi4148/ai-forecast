@@ -67,7 +67,7 @@ export default function DiseaseRiskMapPage() {
   return (
     <>
       <Head>
-        <title>芝生病害リスク予報 - 地図表示</title>
+        <title>芝しごと・病害予報ナビ</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
