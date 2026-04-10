@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/next-script-for-ga -- GA snippet is injected at the top of <Head> as requested */
 import { Html, Head, Main, NextScript } from 'next/document';
+import { GA_MEASUREMENT_ID } from '../lib/gtag';
 
 export default function Document() {
   return (
@@ -8,7 +9,7 @@ export default function Document() {
         {/* Google tag (gtag.js) */}
         <script
           async
-          src="https://www.googletagmanager.com/gtag/js?id=G-M4R0B2LW72"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         />
         <script
           dangerouslySetInnerHTML={{
@@ -17,7 +18,7 @@ export default function Document() {
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', 'G-M4R0B2LW72');
+  gtag('config', '${GA_MEASUREMENT_ID}');
 `,
           }}
         />
