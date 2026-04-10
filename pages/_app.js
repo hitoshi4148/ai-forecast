@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import '../styles/globals.css';
 import 'leaflet/dist/leaflet.css';
+import GaStepDebugPanel from '../components/GaStepDebugPanel';
 import { ensureGaDebugMode, gaPageView } from '../lib/gtag';
 
 export default function App({ Component, pageProps }) {
@@ -30,5 +31,10 @@ export default function App({ Component, pageProps }) {
     };
   }, [router.isReady, router.asPath]);
 
-  return <Component {...pageProps} />;
+  return (
+    <>
+      <GaStepDebugPanel />
+      <Component {...pageProps} />
+    </>
+  );
 }

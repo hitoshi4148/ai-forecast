@@ -9,6 +9,11 @@ export default function Document() {
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="beforeInteractive"
+          onLoad={() => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('ga-forecast:gtag-js-loaded'));
+            }
+          }}
         />
         <Script
           id="ga-inline-init"
