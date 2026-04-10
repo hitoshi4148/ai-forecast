@@ -9,8 +9,25 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     if (!router.isReady) return;
-    ensureGaDebugMode();
-    gaPageView(router.asPath);
+    let cancelled = false;
+    const started = Date.now();
+
+    const trySend = () => {
+      if (cancelled) return;
+      if (typeof window.gtag === 'function') {
+        ensureGaDebugMode();
+        gaPageView(router.asPath);
+        return;
+      }
+      if (Date.now() - started < 10000) {
+        requestAnimationFrame(trySend);
+      }
+    };
+
+    trySend();
+    return () => {
+      cancelled = true;
+    };
   }, [router.isReady, router.asPath]);
 
   return <Component {...pageProps} />;
