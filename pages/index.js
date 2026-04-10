@@ -9,8 +9,9 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // メインページにリダイレクト
-    router.replace('/disease-risk-map');
+    // クエリを落とさない（例: ?debug_mode=true を /disease-risk-map に引き継ぐ）
+    const q = typeof window !== 'undefined' ? window.location.search : '';
+    router.replace(`/disease-risk-map${q}`);
   }, [router]);
 
   return (
