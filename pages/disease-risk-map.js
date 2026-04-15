@@ -80,6 +80,51 @@ export default function DiseaseRiskMapPage() {
           maxWidth: '1400px',
           margin: '0 auto'
         }}>
+          {/* おすすめの１ */}
+          <section
+            aria-label="おすすめの１"
+            style={{
+              marginBottom: '20px',
+              textAlign: 'center',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                margin: '0 0 10px 0',
+                textAlign: 'center',
+              }}
+            >
+              おすすめの１
+            </h2>
+            <a
+              href="https://www.turf-tools.jp/services-4"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                lineHeight: 0,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              }}
+            >
+              <img
+                src="/banner_pr_size1.png"
+                alt="芝管理のプロにPRしませんか？農薬・資材・機械メーカー様向け アプリ内掲載パートナー募集中"
+                width={300}
+                height={112}
+                style={{
+                  width: 300,
+                  height: 112,
+                  display: 'block',
+                }}
+              />
+            </a>
+          </section>
+
           {/* ヘッダー */}
           <header style={{
             marginBottom: '20px',
