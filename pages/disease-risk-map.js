@@ -80,25 +80,13 @@ export default function DiseaseRiskMapPage() {
           maxWidth: '1400px',
           margin: '0 auto'
         }}>
-          {/* おすすめの１ */}
+          {/* PR バナー */}
           <section
-            aria-label="おすすめの１"
             style={{
               marginBottom: '20px',
               textAlign: 'center',
             }}
           >
-            <h2
-              style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#374151',
-                margin: '0 0 10px 0',
-                textAlign: 'center',
-              }}
-            >
-              おすすめの１
-            </h2>
             <a
               href="https://www.turf-tools.jp/services-4"
               target="_blank"
