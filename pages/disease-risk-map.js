@@ -113,6 +113,72 @@ export default function DiseaseRiskMapPage() {
             </a>
           </section>
 
+          {/* ブログ・YouTube バナー（横並び・表示 300x100） */}
+          <section
+            style={{
+              marginBottom: '20px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                gap: '12px',
+              }}
+            >
+              <a
+                href="https://www.turf-tools.jp/blog"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  lineHeight: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                }}
+              >
+                <img
+                  src="/bloglink.png"
+                  alt="芝管理技術ブログ。芝管理の考え方を理解する。データ駆動型の芝草管理を解説"
+                  width={600}
+                  height={200}
+                  style={{
+                    width: 300,
+                    height: 100,
+                    display: 'block',
+                  }}
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/channel/UCSRU0zk4Fj1ETWqMRlJDPJQ"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  lineHeight: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                }}
+              >
+                <img
+                  src="/youtubelink.png"
+                  alt="現場で役立つ芝管理ノウハウ。グロウアンドプログレス YouTube チャンネル"
+                  width={600}
+                  height={200}
+                  style={{
+                    width: 300,
+                    height: 100,
+                    display: 'block',
+                  }}
+                />
+              </a>
+            </div>
+          </section>
+
           {/* ヘッダー */}
           <header style={{
             marginBottom: '20px',
