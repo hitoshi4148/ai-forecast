@@ -66,10 +66,11 @@ export default function UserFacilitySettings({ onFacilitiesUpdated }) {
   }, [facilityItems]);
 
   const tree = useMemo(() => buildRegionTree(rows), [rows]);
-  const region1Options = useMemo(() => Object.keys(tree).sort(), [tree]);
+  // CSVの並び順を保持（北海道→南などの意図した順序）
+  const region1Options = useMemo(() => Object.keys(tree), [tree]);
   const region2Options = useMemo(() => {
     if (!region1 || !tree[region1]) return [];
-    return Object.keys(tree[region1]).sort();
+    return Object.keys(tree[region1]);
   }, [tree, region1]);
 
   const courseOptions = useMemo(() => {
