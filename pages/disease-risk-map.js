@@ -3,6 +3,9 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import UserFacilitySettings from '../components/UserFacilitySettings';
 import DiseaseRiskExplanation from '../components/DiseaseRiskExplanation';
+import { loadFacilityItemsFromCookie } from '../lib/facilities';
+
+const APP_VERSION = 'v2.0.0';
 
 // DiseaseRiskMapViewを動的インポート（SSRを無効化）
 const DiseaseRiskMapView = dynamic(
@@ -16,58 +19,24 @@ const DiseaseRiskMapView = dynamic(
  * 日本地図上に施設別の病害リスクを可視化するメインページ
  */
 export default function DiseaseRiskMapPage() {
-  const [userFacility, setUserFacility] = useState(null);
+  const [savedFacilityItems, setSavedFacilityItems] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    // Cookieからユーザー指定施設を取得
-    const cookies = document.cookie.split(';');
-    const facilityCookie = cookies.find(c => c.trim().startsWith('userFacility='));
-    
-    if (facilityCookie) {
-      try {
-        const jsonStr = decodeURIComponent(facilityCookie.split('=')[1]);
-        const facility = JSON.parse(jsonStr);
-        setUserFacility(facility);
-      } catch (e) {
-        console.error('Cookie解析エラー:', e);
-      }
-    }
+    setSavedFacilityItems(loadFacilityItemsFromCookie());
   }, []);
 
-  const handleFacilitySet = (facility) => {
-    // 現在の状態と同じ場合は何もしない（無限ループ防止）
-    const currentFacilityStr = userFacility ? JSON.stringify(userFacility) : null;
-    const newFacilityStr = facility ? JSON.stringify(facility) : null;
-    if (currentFacilityStr === newFacilityStr) {
-      return;
-    }
-    
-    setUserFacility(facility);
-    // 施設が設定されたら設定パネルを閉じる
-    if (facility) {
-      setShowSettings(false);
-      // 少し待ってからリロード（保存処理が完了するのを待つ）
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    } else if (userFacility) {
-      // クリアされた場合（かつ現在施設が存在する場合）も設定パネルを閉じてリロード
-      setShowSettings(false);
-      // 少し待ってからリロード
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    } else {
-      // クリアされたが、元々施設がなかった場合はリロードしない
-      setShowSettings(false);
-    }
+  const handleFacilitiesUpdated = () => {
+    setShowSettings(false);
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
     <>
       <Head>
-        <title>芝しごと・病害予報ナビ</title>
+        <title>芝しごと・病害リスク予報</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -83,7 +52,7 @@ export default function DiseaseRiskMapPage() {
           {/* PR バナー */}
           <section
             style={{
-              marginBottom: '20px',
+              marginBottom: '16px',
               textAlign: 'center',
             }}
           >
@@ -102,21 +71,21 @@ export default function DiseaseRiskMapPage() {
               <img
                 src="/banner_pr_size1.png"
                 alt="芝管理のプロにPRしませんか？農薬・資材・機械メーカー様向け アプリ内掲載パートナー募集中"
-                width={300}
-                height={112}
+                width={260}
+                height={97}
                 style={{
-                  width: 300,
-                  height: 112,
+                  width: 260,
+                  height: 97,
                   display: 'block',
                 }}
               />
             </a>
           </section>
 
-          {/* ブログ・YouTube バナー（横並び・表示 300x100） */}
+          {/* ブログ・YouTube バナー（横並び・表示 260x87） */}
           <section
             style={{
-              marginBottom: '20px',
+              marginBottom: '16px',
             }}
           >
             <div
@@ -125,7 +94,7 @@ export default function DiseaseRiskMapPage() {
                 flexWrap: 'wrap',
                 justifyContent: 'center',
                 alignItems: 'flex-start',
-                gap: '12px',
+                gap: '10px',
               }}
             >
               <a
@@ -146,8 +115,8 @@ export default function DiseaseRiskMapPage() {
                   width={600}
                   height={200}
                   style={{
-                    width: 300,
-                    height: 100,
+                    width: 260,
+                    height: 87,
                     display: 'block',
                   }}
                 />
@@ -170,8 +139,8 @@ export default function DiseaseRiskMapPage() {
                   width={600}
                   height={200}
                   style={{
-                    width: 300,
-                    height: 100,
+                    width: 260,
+                    height: 87,
                     display: 'block',
                   }}
                 />
@@ -190,7 +159,7 @@ export default function DiseaseRiskMapPage() {
               fontWeight: '600',
               marginBottom: '12px'
             }}>
-              芝しごと・病害予報ナビ
+              芝しごと・病害リスク予報
             </h1>
             <div style={{
               marginBottom: '16px',
@@ -229,7 +198,7 @@ export default function DiseaseRiskMapPage() {
                 marginBottom: '16px'
               }}
             >
-              {userFacility ? '施設設定を変更' : 'ユーザー指定施設を設定'}
+              {savedFacilityItems.length > 0 ? '施設設定を変更' : '施設を設定'}
             </button>
           </header>
 
@@ -238,7 +207,7 @@ export default function DiseaseRiskMapPage() {
             marginBottom: '20px',
             display: showSettings ? 'block' : 'none'
           }}>
-            <UserFacilitySettings onFacilitySet={handleFacilitySet} />
+            <UserFacilitySettings onFacilitiesUpdated={handleFacilitiesUpdated} />
           </div>
 
           {/* 地図表示 */}
@@ -258,8 +227,10 @@ export default function DiseaseRiskMapPage() {
             textAlign: 'center'
           }}>
             <p style={{ margin: '4px 0' }}>
-              表示施設: 蔵〇CC、香〇CC、東〇CC、阿〇大津GC
-              {userFacility && `、${userFacility.name}`}
+              表示施設:{' '}
+              {savedFacilityItems.length > 0
+                ? savedFacilityItems.map((i) => i.name).filter(Boolean).join('、')
+                : 'なし'}
             </p>
             <p style={{ margin: '4px 0' }}>
               データ取得: NASA POWER API（過去データ）、MET Norway API（予報データ）
@@ -280,6 +251,10 @@ export default function DiseaseRiskMapPage() {
                 グロウアンドプログレス
               </a>
             </p>
+
+            <div style={{ marginTop: '8px', fontSize: '11px', color: '#9CA3AF' }}>
+              {APP_VERSION}
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { getAllFacilities } from '../lib/facilities';
 import { calculateAllDiseaseRisks } from '../lib/disease-risk-calculator';
@@ -65,18 +65,6 @@ export default function DiseaseRiskMapView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const hasFetchedRef = useRef(false); // データ取得済みフラグ
-
-  // 施設名を伏字略称に変換（表示用）
-  const getDisplayName = (facilityName) => {
-    const nameMap = {
-      '蔵王カントリークラブ': '蔵〇CC',
-      '香取カントリークラブ': '香〇CC',
-      '東海カントリークラブ': '東〇CC',
-      '阿蘇大津ゴルフクラブ': '阿〇大津GC'
-    };
-    return nameMap[facilityName] || facilityName;
-  };
 
   // リスク値に応じた色を返す
   const getRiskColor = (risk) => {
@@ -166,14 +154,6 @@ export default function DiseaseRiskMapView() {
     });
   };
 
-  // リスク値の表示テキストを返す
-  const getRiskText = (risk) => {
-    if (risk === null || risk === undefined || isNaN(risk)) {
-      return '?';
-    }
-    return `${Math.round(risk)}%`;
-  };
-
   // 最大リスク値に基づいてCircleMarkerの半径を計算
   // リスク0% → radius = 12.5、リスク100% → radius = 25.0、0-100%の間は線形補間
   const getRadiusFromRisk = (maxRisk) => {
@@ -188,33 +168,27 @@ export default function DiseaseRiskMapView() {
     return radius; // 小数点を保持
   };
 
-  // 施設のリスクデータを取得（初回のみ）
+  // 施設のリスクデータを取得
   useEffect(() => {
-    // クライアント側でのみ実行
     if (typeof window === 'undefined') return;
-    
+
     setMounted(true);
-    
-    // 既にデータ取得済みの場合は再取得しない
-    if (hasFetchedRef.current) {
-      if (facilities.length > 0) {
-        setLoading(false);
-      }
-      return;
-    }
-    
+
+    let cancelled = false;
+
     const fetchFacilityRisks = async () => {
-      // 既にデータ取得済みの場合はスキップ（二重取得防止）
-      if (hasFetchedRef.current) {
-        return;
-      }
-      
-      hasFetchedRef.current = true; // 取得開始フラグを立てる
       setLoading(true);
       setError(null);
 
       try {
         const facilityList = getAllFacilities();
+        if (facilityList.length === 0) {
+          if (!cancelled) {
+            setFacilities([]);
+          }
+          return;
+        }
+
         const facilitiesWithRisks = await Promise.all(
           facilityList.map(async (facility) => {
             try {
@@ -294,17 +268,26 @@ export default function DiseaseRiskMapView() {
           })
         );
 
-        setFacilities(facilitiesWithRisks);
+        if (!cancelled) {
+          setFacilities(facilitiesWithRisks);
+        }
       } catch (err) {
-        setError(err.message || 'データ取得に失敗しました');
-        hasFetchedRef.current = false; // エラー時はフラグをリセット（再試行可能にする）
+        if (!cancelled) {
+          setError(err.message || 'データ取得に失敗しました');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchFacilityRisks();
-  }, []); // 依存配列は空のまま（初回マウント時のみ実行）
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 日本全体が収まる中心座標とズームレベル
   const center = [36.5, 138.0]; // 日本の中心付近
@@ -374,7 +357,7 @@ export default function DiseaseRiskMapView() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {facilities.map((facility) => {
+        {facilities.length > 0 && facilities.map((facility) => {
           const maxRisk = getMaxRisk(facility.risks);
           const markerColor = getRiskColor(maxRisk);
           const radius = getRadiusFromRisk(maxRisk);
@@ -401,7 +384,7 @@ export default function DiseaseRiskMapView() {
                 className="facility-name-tooltip"
                 opacity={1}
               >
-                {getDisplayName(facility.name)}
+                {facility.name}
               </Tooltip>
                 <Popup>
                 <div style={{
@@ -416,7 +399,7 @@ export default function DiseaseRiskMapView() {
                     borderBottom: '2px solid #E5E7EB',
                     paddingBottom: '8px'
                   }}>
-                    {getDisplayName(facility.name)}
+                    {facility.name}
                   </h3>
                   
                   <div style={{
@@ -511,7 +494,38 @@ export default function DiseaseRiskMapView() {
         })}
       </MapContainer>
 
-      {/* 予測時刻ラベル */}
+      {facilities.length === 0 && !loading && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 500,
+          }}
+        >
+          <div
+            style={{
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              padding: '20px 28px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              border: '1px solid rgba(30, 64, 175, 0.2)',
+              color: '#1E40AF',
+              fontSize: '18px',
+              fontWeight: '600',
+              textAlign: 'center',
+            }}
+          >
+            施設を設定してください
+          </div>
+        </div>
+      )}
+
+      {/* タイトル・予測時刻ラベル */}
       <div
         style={{
           position: 'absolute',
@@ -521,14 +535,21 @@ export default function DiseaseRiskMapView() {
           padding: '10px 16px',
           borderRadius: '8px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          fontSize: '13px',
-          fontWeight: 'bold',
-          color: '#1E40AF',
           zIndex: 1000,
-          border: '1px solid rgba(30, 64, 175, 0.2)'
+          border: '1px solid rgba(30, 64, 175, 0.2)',
+          textAlign: 'right',
         }}
       >
-        明日 朝6:00（日本時間）時点の病害リスク予報
+        <div
+          style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: '#1E40AF',
+            lineHeight: 1.25,
+          }}
+        >
+          明日朝6:00の病害リスク
+        </div>
       </div>
 
       {/* 凡例 */}

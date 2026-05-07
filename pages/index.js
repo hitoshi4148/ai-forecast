@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>芝しごと・病害予報ナビ</title>
+        <title>芝しごと・病害リスク予報</title>
         <meta name="description" content="ゴルフ場グリーンキーパー向けの病害リスク予報アプリ" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>

@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserFacilitySettings from '../components/UserFacilitySettings';
+import { loadFacilityItemsFromCookie } from '../lib/facilities';
 
 /**
  * ユーザー指定施設設定の使用例ページ
  */
 export default function FacilitySettingsExample() {
-  const [userFacility, setUserFacility] = useState(null);
+  const [items, setItems] = useState([]);
 
-  const handleFacilitySet = (facility) => {
-    setUserFacility(facility);
-    console.log('施設が設定されました:', facility);
+  const refresh = () => {
+    setItems(loadFacilityItemsFromCookie());
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const handleFacilitiesUpdated = () => {
+    refresh();
+    console.log('施設が更新されました:', loadFacilityItemsFromCookie());
   };
 
   return (
@@ -19,7 +28,7 @@ export default function FacilitySettingsExample() {
           ユーザー指定施設設定
         </h1>
 
-        <UserFacilitySettings onFacilitySet={handleFacilitySet} />
+        <UserFacilitySettings onFacilitiesUpdated={handleFacilitiesUpdated} />
 
         {/* 設定された施設情報の表示例 */}
         <div style={{
@@ -42,15 +51,17 @@ export default function FacilitySettingsExample() {
             <span>設定された施設情報</span>
           </h2>
 
-          {userFacility ? (
-            <div style={{ color: '#374151', fontSize: '14px' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <strong>施設名:</strong> {userFacility.name}
-              </div>
-              <div>
-                <strong>座標:</strong> {userFacility.latitude}, {userFacility.longitude}
-              </div>
-            </div>
+          {items.length > 0 ? (
+            <ul style={{ color: '#374151', fontSize: '14px', margin: 0, paddingLeft: '20px' }}>
+              {items.map((it) => (
+                <li key={it.id} style={{ marginBottom: '8px' }}>
+                  <strong>{it.name}</strong>
+                  {' '}
+                  ({it.latitude}, {it.longitude})
+                  {it.source === 'csv' && it.region1 ? ` — ${it.region1} / ${it.region2}` : ''}
+                </li>
+              ))}
+            </ul>
           ) : (
             <div style={{ color: '#6B7280', fontSize: '14px' }}>
               まだ施設が設定されていません
