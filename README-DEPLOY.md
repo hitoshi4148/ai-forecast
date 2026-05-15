@@ -33,7 +33,7 @@
 | Key | Value | 説明 |
 |-----|-------|------|
 | `NODE_ENV` | `production` | 本番環境設定 |
-| `MET_NORWAY_USER_AGENT` | `TurfDiseaseForecastApp/1.0 (your-email@example.com)` | MET Norway API用のUser-Agent（メールアドレスを実際のものに変更） |
+| `MET_NORWAY_USER_AGENT` | （省略可） | 未設定なら `lib/met-norway-api.js` のデフォルト（アプリ名 + 連絡用メール）が使われます。`example.com` などのプレースホルダだけの連絡先は 403 になりやすいので入れないでください。上書きする場合は実在するメールか運用中の URL を含めてください。 |
 
 ### その他の設定
 
@@ -70,7 +70,7 @@
 
 ### 環境変数の設定漏れ
 
-- `MET_NORWAY_USER_AGENT`が設定されていない場合、デフォルト値が使用されますが、MET Norwayの利用規約に準拠するため、実際のメールアドレスを設定することを推奨します
+- `MET_NORWAY_USER_AGENT` が未設定の場合はコード内のデフォルト（識別子 + 連絡用メール）が使われます。独自の User-Agent に変える場合のみ Render の Environment に追加してください
 
 ## 6. カスタムドメインの設定（オプション）
 
