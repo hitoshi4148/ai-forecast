@@ -36,7 +36,7 @@ export default function UserFacilitySettings({ onFacilitiesUpdated }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/data/golfCourse20260507.csv');
+        const res = await fetch('/data/golfCourse20260525.csv');
         if (!res.ok) throw new Error(`CSVの取得に失敗しました (${res.status})`);
         const text = await res.text();
         if (cancelled) return;

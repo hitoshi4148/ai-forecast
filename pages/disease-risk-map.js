@@ -5,7 +5,7 @@ import UserFacilitySettings from '../components/UserFacilitySettings';
 import DiseaseRiskExplanation from '../components/DiseaseRiskExplanation';
 import { loadFacilityItemsFromCookie } from '../lib/facilities';
 
-const APP_VERSION = 'v2.0.0';
+const APP_VERSION = 'v2.0.1';
 
 // DiseaseRiskMapViewを動的インポート（SSRを無効化）
 const DiseaseRiskMapView = dynamic(
