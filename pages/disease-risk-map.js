@@ -1,11 +1,26 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import UserFacilitySettings from '../components/UserFacilitySettings';
 import DiseaseRiskExplanation from '../components/DiseaseRiskExplanation';
 import { loadFacilityItemsFromCookie } from '../lib/facilities';
 
-const APP_VERSION = 'v2.0.1';
+const APP_VERSION = 'v2.0.2';
+
+const EXPLANATION_LINKS = [
+  {
+    label: '【公式解説】',
+    href: 'https://www.turf-tools.jp/%E8%A7%A3%E8%AA%AC',
+  },
+  {
+    label: '【新しい解説】',
+    href: 'https://www.turf-tools.jp/post/%E3%80%8C%E8%8A%9D%E3%81%97%E3%81%94%E3%81%A8%E3%83%BB%E7%97%85%E5%AE%B3%E3%83%AA%E3%82%B9%E3%82%AF%E4%BA%88%E5%A0%B1-v2-0-0%E3%80%8D%E3%82%92%E5%85%AC%E9%96%8B%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F',
+  },
+  {
+    label: '【▶解説動画】',
+    href: 'https://youtu.be/uVXxHfELuuo',
+  },
+];
 
 // DiseaseRiskMapViewを動的インポート（SSRを無効化）
 const DiseaseRiskMapView = dynamic(
@@ -172,6 +187,39 @@ export default function DiseaseRiskMapPage() {
                 lineHeight: '1.5'
               }}>
                 明日の作業判断に使える、気象条件ベースの病害リスク指標です
+              </p>
+              <p style={{
+                margin: '0 0 10px 0',
+                fontSize: '14px',
+                lineHeight: '1.5',
+              }}>
+                {EXPLANATION_LINKS.map((link, index) => (
+                  <React.Fragment key={link.href}>
+                    {index > 0 && (
+                      <span style={{ color: '#D1D5DB', margin: '0 8px' }} aria-hidden="true">
+                        ｜
+                      </span>
+                    )}
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: '#1E40AF',
+                        textDecoration: 'none',
+                        fontWeight: '600',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = 'underline';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = 'none';
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  </React.Fragment>
+                ))}
               </p>
               <p style={{
                 color: '#9CA3AF',
